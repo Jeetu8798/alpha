@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Speedly Counts</title>
+  <style>
+    .download-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    
+    #downloadButton {
+      font-size: 16px;
+      padding: 6px 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Today's Counts</h1>
+  
+  <!-- Container for the manual count input -->
+  <div>
+    <label for="manualCount">Manual Count:</label>
+    <input type="number" id="manualCount" value="0">
+  </div>
+  
+  <div id="buttonContainer">
+    <button id="addButton" class="button" style="font-size: 24px; padding: 12px 20px;">Add Count</button>
+    <button id="postponeButton" class="button" style="font-size: 24px; padding: 12px 20px;">Postpone</button>
+  </div>
+  
+  <!-- Corrected button container IDs -->
+  <div id="clearButtonContainer">
+    <button id="clearButton" class="button" style="font-size: 24px; padding: 12px 20px;">Clear</button>
+    <button id="clearPostponeButton" class="button" style="font-size: 24px; padding: 12px 20px;">Clear Postpone</button>
+  </div>
+  
+  <div id="postponeCounts">
+    <p>Counts:</p>
+    <p id="totalCounts">Total Count: 0</p>
+    <p id="postponeCount">Postpone Count: 0</p>
+    <ul id="postponeList"></ul>
+  </div>
+  
+  <p id="counter">Count: 0</p>
+  <ol id="timestamps"></ol>
+
+  <div class="download-container">
+    <button id="downloadButton" class="button">Download Entries</button>
+  </div>
+
+  <script>
+    const addButton = document.getElementById('addButton');
+    const postponeButton = document.getElementById('postponeButton');
+    const clearButton = document.getElementById('clearButton');
+    const clearPostponeButton = document.getElementById('clearPostponeButton');
+    const totalCountsElement = document.getElementById('totalCounts');
+    const postponeCountsElement = document.getElementById('postponeCount');
+    const postponeList = document.getElementById('postponeList');
+    const counterElement = document.getElementById('counter');
+    const timestampsList = document.getElementById('timestamps');
+    const manualCountInput = document.getElementById('manualCount');
+    const downloadButton = document.getElementById('downloadButton'); // Moved this line up
+
+    let count = 0;
+    let totalCount = 0;
+    let postponeCount = 0;
+
+    addButton.addEventListener('click', () => {
+      if (manualCountInput.value > 0) {
+        manualCountInput.value--;
+        count++;
+        totalCount++;
+        const timestamp = new Date().toLocaleString();
+        
+        counterElement.textContent = `Count: ${count}`;
+        totalCountsElement.textContent = `Total Count: ${totalCount}`;
+        
+        const timestampItem = document.createElement('li');
+        timestampItem.textContent = timestamp;
+        timestampsList.appendChild(timestampItem);
+      }
+    });
+
+    postponeButton.addEventListener('click', () => {
+      postponeCount++;
+      totalCount++;
+      const timestamp = new Date().toLocaleString();
+      
+      const postponeCountText = `Postpone Count: ${postponeCount}`;
+      postponeCountsElement.textContent = postponeCountText;
+      totalCountsElement.textContent = `Total Count: ${totalCount}`;
+      
+      const postponeItem = document.createElement('li');
+      postponeItem.textContent = `${postponeCount}: ${timestamp}`;
+      postponeList.appendChild(postponeItem);
+    });
+
+    clearButton.addEventListener('click', () => {
+      if (count > 0) {
+        count--;
+        totalCount--;
+        const timestampItems = timestampsList.querySelectorAll('li');
+        if (timestampItems.length > 0) {
+          timestampsList.removeChild(timestampItems[timestampItems.length - 1]);
+        }
+        counterElement.textContent = `Count: ${count}`;
+        totalCountsElement.textContent = `Total Count: ${totalCount}`;
+      }
+    });
+
+    clearPostponeButton.addEventListener('click', () => {
+      if (postponeCount > 0) {
+        postponeCount--;
+        totalCount--;
+        const postponeItems = postponeList.querySelectorAll('li');
+        if (postponeItems.length > 0) {
+          postponeList.removeChild(postponeItems[postponeItems.length - 1]);
+        }
+        postponeCountsElement.textContent = `Postpone Count: ${postponeCount}`;
+        totalCountsElement.textContent = `Total Count: ${totalCount}`;
+      }
+    });
+
+    // Moved download button event listener outside of the other listeners
+    downloadButton.addEventListener('click', () => {
+      const entriesContent = generateEntriesContent();
+      downloadToFile(entriesContent, 'entries.txt', 'text/plain');
+    });
+
+    function generateEntriesContent() {
+      const timestamps = document.querySelectorAll('#timestamps li');
+      const postponeEntries = document.querySelectorAll('#postponeList li');
+
+      let content = 'Timestamps:\n\n';
+
+      timestamps.forEach((timestamp, index) => {
+        content += `${index + 1}: ${timestamp.textContent}\n`;
+      });
+
+      content += '\nPostpone Entries:\n\n';
+
+      postponeEntries.forEach((entry, index) => {
+        content += `Postpone ${index + 1}: ${entry.textContent}\n`;
+      });
+
+      return content;
+    }
+
+    function downloadToFile(content, filename, contentType) {
+      const element = document.createElement('a');
+      const file = new Blob([content], { type: contentType });
+      element.href = URL.createObjectURL(file);
+      element.download = filename;
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+  </script>
+</body>
+</html>
